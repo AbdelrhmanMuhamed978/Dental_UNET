@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental X-Ray U-Net Segmentation</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            background-color: #eef2f5; 
+            padding: 40px; 
+            color: #4a5568;
+        }
+        h1 { color: #5a6778; margin-bottom: 30px; }
+        
+        .upload-section { 
+            border: 2px dashed #a0aec0; 
+            border-radius: 12px; 
+            padding: 30px; 
+            max-width: 600px; 
+            margin: 0 auto 40px auto;
+            background: #f7fafc;
+        }
+        
+        input[type="file"] { margin: 10px 0 20px 0; }
+        
+        input[type="submit"] { 
+            background: #4299e1; 
+            color: white; 
+            border: none; 
+            padding: 12px 30px; 
+            cursor: pointer; 
+            border-radius: 6px; 
+            font-size: 16px; 
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        input[type="submit"]:hover { background: #3182ce; }
+        
+        .results { 
+            display: flex; 
+            justify-content: center; 
+            gap: 40px; 
+            flex-wrap: wrap; 
+        }
+        .image-box { text-align: center; }
+        h3 { color: #4a5568; margin-bottom: 15px; font-size: 18px; }
+        
+        img { 
+            width: 256px;  /* Locked to native U-Net resolution to prevent blurring */
+            height: 256px; /* Enforce square aspect ratio */
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            image-rendering: crisp-edges; /* Forces browser to keep edges sharp */
+            image-rendering: pixelated; 
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Dental X-Ray U-Net Segmentation</h1>
+    
+    <div class="upload-section">
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" accept="image/*" required>
+            <br>
+            <input type="submit" value="Predict & Analyze">
+        </form>
+    </div>
+
+    {% if original_image %}
+    <div class="results">
+        <div class="image-box">
+            <h3>Original X-ray (256x256)</h3>
+            <img src="{{ url_for('static', filename='uploads/' + original_image) }}" alt="Original Image">
+        </div>
+        <div class="image-box">
+            <h3>Predicted Mask Overlay</h3>
+            <img src="{{ url_for('static', filename='uploads/' + mask_image) }}" alt="Mask Overlay">
+        </div>
+    </div>
+    {% endif %}
+
+</body>
+</html>
