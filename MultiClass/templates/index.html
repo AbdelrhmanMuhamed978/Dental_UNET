@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental Radiography Segmentation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            text-align: center;
+        }
+        .upload-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        input[type="file"] {
+            margin-bottom: 1rem;
+        }
+        button {
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #004494;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .image-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            display: none; /* Hidden until loaded */
+        }
+        .loading {
+            display: none;
+            margin-top: 1rem;
+            font-weight: bold;
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>U-Net Dental Segmentation</h1>
+    
+    <div class="upload-container">
+        <input type="file" id="imageInput" accept=".png, .jpg, .jpeg">
+        <br>
+        <button onclick="uploadImage()">Run Segmentation</button>
+        <div class="loading" id="loadingIndicator">Processing X-ray through U-Net...</div>
+    </div>
+
+    <div class="results-grid">
+        <div class="image-card">
+            <h3>Original X-Ray</h3>
+            <img id="originalPreview" alt="Original Upload">
+        </div>
+        <div class="image-card">
+            <h3>Predicted Mask (32 Classes)</h3>
+            <img id="maskPreview" alt="Segmentation Result">
+        </div>
+    </div>
+
+    <script>
+        async function uploadImage() {
+            const fileInput = document.getElementById('imageInput');
+            const originalPreview = document.getElementById('originalPreview');
+            const maskPreview = document.getElementById('maskPreview');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+
+            if (fileInput.files.length === 0) {
+                alert("Please select an X-ray image first.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            
+            // Show original image preview immediately
+            originalPreview.src = URL.createObjectURL(file);
+            originalPreview.style.display = 'block';
+            
+            // Reset mask preview and show loading state
+            maskPreview.style.display = 'none';
+            loadingIndicator.style.display = 'block';
+
+            // Construct FormData payload
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                // Send POST request to our Flask API
+                const response = await fetch('/api/segment', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Bind the returned Base64 string directly to the image source
+                    maskPreview.src = data.mask_base64;
+                    maskPreview.style.display = 'block';
+                } else {
+                    alert("Error processing image: " + data.error);
+                }
+            } catch (error) {
+                console.error("Network error:", error);
+                alert("Failed to connect to the segmentation API.");
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
